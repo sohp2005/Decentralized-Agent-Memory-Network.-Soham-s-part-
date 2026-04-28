@@ -1,0 +1,32 @@
+
+services:
+  cache:
+    build: ./cache-service
+    container_name: cache-service
+    ports:
+      - "8080:8080"
+
+  persistence:
+    build: ./persistence_service
+    container_name: persistence-service
+    ports:
+      - "8090:8090"
+    volumes:
+      - db_data:/data
+
+  gateway:
+    build: ./agent_api_gateway
+    container_name: agent-api-gateway
+    environment:
+      CACHE_URL: http://cache:8080
+      PERSIST_URL: http://persistence:8090
+      AGENT_ID: agent-1
+    ports:
+      - "8081:8081"
+      - "50051:50051"
+    depends_on:
+      - cache
+      - persistence
+
+volumes:
+  db_data:

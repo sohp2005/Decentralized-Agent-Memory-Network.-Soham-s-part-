@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package memory.v1;
+
+option go_package = "api/memoryv1;memoryv1";
+
+
+
+
+// MemoryService is the gRPC interface exposed by the Agent API Gateway.
+// REST is a thin layer on top of this in the LLD.
+
+service MemoryService {
+  // Structured key-value read.
+  rpc GetStructured(GetStructuredRequest) returns (GetStructuredResponse) {}
+
+  // Structured key-value write.
+  rpc StoreStructured(StoreStructuredRequest) returns (StoreStructuredResponse) {}
+
+  // Unstructured store: content + embedding + optional global index.
+  rpc StoreUnstructured(StoreUnstructuredRequest) returns (StoreUnstructuredResponse) {}
+
+  // Unstructured semantic search: scope = LOCAL or GLOBAL.
+  rpc SearchUnstructured(SearchUnstructuredRequest) returns (SearchUnstructuredResponse) {}
+}
+
+// ---- Messages ----
+
+message GetStructuredRequest {
+  string key = 1;
+}
+
+message GetStructuredResponse {
+  // Raw JSON string or serialized row from persistence layer.
+  string json_value = 1;
+}
+
+message StoreStructuredRequest {
+  string key   = 1;
+  string value = 2;
+}
+
+message StoreStructuredResponse {}
+
+message StoreUnstructuredRequest {
+  string id           = 1;
+  string content      = 2;          // optional textual content or JSON
+  repeated float vector = 3;        // embedding
+  bool index_global   = 4;          // whether to index in global store
+}
+
+message StoreUnstructuredResponse {}
+
+message SearchUnstructuredRequest {
+  string scope        = 1;          // "LOCAL" or "GLOBAL"
+  repeated float vector = 2;        // query embedding
+  int32 top_k         = 3;
+}
+
+message SearchUnstructuredResponse {
+  repeated string ids    = 1;
+  repeated float scores  = 2;
+}
